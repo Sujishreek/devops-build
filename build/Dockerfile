@@ -1,11 +1,15 @@
-# Use a simple nginx image
+# Use a minimal Nginx image
 FROM nginx:alpine
 
-# Remove default nginx html
+# Clean default static files if needed (optional)
 RUN rm -rf /usr/share/nginx/html/*
 
-# Copy website files to nginx
+# Copy built static files into Nginx's html directory
 COPY . /usr/share/nginx/html
 
 # Expose port 80
 EXPOSE 80
+
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]
+
