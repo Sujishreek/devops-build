@@ -1,2 +1,8 @@
 #!/bin/bash
-docker build -t sujishreek/dev-react-app .
+
+# Navigate to project root (if needed)
+cd "$(dirname "$0")/.."
+
+# Build Docker image from the build folder
+docker build -t your-image-name ./build
+
