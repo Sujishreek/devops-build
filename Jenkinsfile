@@ -31,41 +31,51 @@ pipeline {
 
         stage('Push to Dev Repo') {
             when {
-                branch 'dev'
+                expression { env.BRANCH_NAME == 'dev' }
             }
             steps {
                 sh """
                     docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${DEV_REPO}:${IMAGE_TAG}
+                    docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${DEV_REPO}:latest
                     docker push ${DEV_REPO}:${IMAGE_TAG}
+                    docker push ${DEV_REPO}:latest
                 """
             }
         }
 
         stage('Push to Prod Repo') {
             when {
-                branch 'master'
+                expression { env.BRANCH_NAME == 'master' }
             }
             steps {
                 sh """
                     docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${PROD_REPO}:${IMAGE_TAG}
+                    docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${PROD_REPO}:latest
                     docker push ${PROD_REPO}:${IMAGE_TAG}
+                    docker push ${PROD_REPO}:latest
                 """
             }
         }
 
         stage('Deploy') {
-            when {
-                anyOf {
-                    branch 'dev'
-                    branch 'master'
-                }
-            }
             steps {
-                sh '''
-                    chmod +x deploy.sh
-                    ./deploy.sh
-                '''
+                sh 'chmod +x deploy.sh'
+                sh './deploy.sh'
+            }
+        }
+
+        stage('Cleanup') {
+            steps {
+                sh 'docker system prune -f'
             }
         }
     }
+
+    post {
+        failure {
+            echo 'Build failed!'
+           
+        }
+    }
 }
+
