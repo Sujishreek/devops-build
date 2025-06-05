@@ -54,8 +54,17 @@ pipeline {
         }
 
         stage('Deploy') {
+            when {
+                anyOf {
+                    branch 'dev'
+                    branch 'master'
+                }
+            }
             steps {
-                sh './deploy.sh'
+                sh '''
+                    chmod +x deploy.sh
+                    ./deploy.sh
+                '''
             }
         }
     }
