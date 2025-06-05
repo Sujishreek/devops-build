@@ -1,30 +1,32 @@
 pipeline {
-    agent any
-    environment {
-        DOCKER_IMAGE = 'devops-build-react-app'
-        DOCKER_TAG = 'latest'
+  agent any
+
+  stages {
+    stage('Clone') {
+      steps {
+        git branch: 'dev', url: 'https://github.com/sriram-R-krishnan/devops-build'
+      }
     }
-    stages {
-        stage('Clone') {
-            steps {
-                git branch: 'dev', url: 'https://github.com/Sujishreek/devops-build.git'
-            }
-        }
-        stage('Build Docker Image') {
-            steps {
-                sh 'docker build -t $DOCKER_IMAGE .'
-            }
-        }
-        stage('Push to Docker Hub') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh '''
-                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                    docker tag $DOCKER_IMAGE $DOCKER_USER/$DOCKER_IMAGE:$DOCKER_TAG
-                    docker push $DOCKER_USER/$DOCKER_IMAGE:$DOCKER_TAG
-                    '''
-                }
-            }
-        }
+
+    stage('Build Docker Image') {
+      steps {
+        sh 'bash build.sh'
+      }
     }
+
+    stage('Push to Docker Hub') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+          sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
+          sh 'docker push your-dockerhub-username/dev:latest'
+        }
+      }
+    }
+
+    stage('Deploy') {
+      steps {
+        sh 'bash deploy.sh'
+      }
+    }
+  }
 }
